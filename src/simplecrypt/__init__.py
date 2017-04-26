@@ -7,6 +7,8 @@ from Crypto.Util import Counter
 
 # see: http://www.daemonology.net/blog/2009-06-11-cryptographic-right-answers.html
 
+DEFAULT_ROUNDS = 100000
+
 EXPANSION_COUNT = (10000, 10000, 100000)
 AES_KEY_LEN = 256
 SALT_LEN = (128, 256, 256)
@@ -25,7 +27,7 @@ for header in HEADER:
     assert len(header) == HEADER_LEN
 
 
-def encrypt(password, data):
+def encrypt(password, data, rounds=DEFAULT_ROUNDS):
     '''
     Encrypt some data.  Input can be bytes or a string (which will be encoded
     using UTF-8).
@@ -37,6 +39,7 @@ def encrypt(password, data):
 
     @return: The encrypted data, as bytes.
     '''
+    EXPANSION_COUNT = (rounds, rounds, rounds)
     data = _str_to_bytes(data)
     _assert_encrypt_length(data)
     salt = bytes(_random_bytes(SALT_LEN[LATEST]//8))
@@ -48,7 +51,7 @@ def encrypt(password, data):
     return HEADER[LATEST] + salt + encrypted + hmac
 
 
-def decrypt(password, data):
+def decrypt(password, data, rounds=DEFAULT_ROUNDS):
     '''
     Decrypt some data.  Input must be bytes.
 
@@ -60,6 +63,7 @@ def decrypt(password, data):
     @return: The decrypted data, as bytes.  If the original message was a
     string you can re-create that using `result.decode('utf8')`.
     '''
+    EXPANSION_COUNT = (rounds, rounds, rounds)
     _assert_not_unicode(data)
     _assert_header_prefix(data)
     version = _assert_header_version(data)
